@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="ja">
+<head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; base-uri 'none'; form-action 'none'">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ごうかくクエスト</title>
+<style>
+:root{--ink:#24543a;--sub:#4d7360;--blue:#3b82f6;--blue-d:#2563eb;--yellow:#ffd54f;--orange:#f59e0b;--green:#4caf50;--green2:#6bab4f;--card:#fff;--line:#e3eedc}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;color:var(--ink);background:linear-gradient(180deg,#d4edff 0%,#eef9e6 55%,#e2f4d2 100%);min-height:100vh;line-height:1.6}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.top{max-width:1100px;margin:0 auto;padding:16px 16px 6px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:10px;align-items:center}
+.logo{width:46px;height:46px;border-radius:50%;background:var(--yellow);border:3px solid var(--orange);display:grid;place-items:center;font-size:24px}
+h1{margin:0;font-size:1.3rem;letter-spacing:.04em}
+.brand p{margin:0;font-size:.8rem;color:var(--sub)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:#fff;border-radius:999px;padding:4px 12px;font-size:.82rem;font-weight:700;box-shadow:0 2px 6px rgba(36,84,58,.08)}
+.chip.hot{background:#fff4d6;color:#8a5200}
+.layout{max-width:1100px;margin:0 auto;padding:8px 16px 16px;display:grid;gap:14px}
+.card{background:var(--card);border-radius:22px;padding:16px;box-shadow:0 4px 14px rgba(36,84,58,.08)}
+h2{margin:0 0 10px;font-size:1.05rem}
+h3{margin:14px 0 6px;font-size:.92rem;color:var(--sub)}
+.maphead{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+.goalname{font-size:.85rem;color:var(--sub);font-weight:700}
+.prog{font-size:1.05rem;font-weight:700}
+.prog b{font-size:1.6rem;color:var(--blue-d)}
+.laps{font-size:.8rem;font-weight:700;color:#8a5200}
+.bar{height:10px;background:#e6f0e0;border-radius:99px;overflow:hidden;margin:8px 0 12px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--yellow));border-radius:99px;transition:width .4s}
+.map{position:relative;aspect-ratio:4/5;border-radius:18px;overflow:hidden;background:
+radial-gradient(ellipse 70% 18% at 15% 30%,#d3f0b4 60%,transparent 61%),
+radial-gradient(ellipse 60% 16% at 85% 32%,#cbeca8 60%,transparent 61%),
+linear-gradient(#bfe6ff 0%,#e3f5ff 22%,#d8f2c0 30%,#c3e9a0 100%)}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.cloud{position:absolute;font-size:30px;opacity:.9;animation:drift 18s linear infinite alternate}
+.c1{top:3%;left:6%}.c2{top:12%;left:70%;font-size:24px;animation-duration:24s}
+@keyframes drift{to{transform:translateX(26px)}}
+.node{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:#fff;border:3px solid var(--green);display:grid;place-items:center;font-size:20px;cursor:pointer;padding:0;z-index:2;box-shadow:0 3px 6px rgba(0,0,0,.1)}
+.node.done{background:#f1fbe9;border-color:#8bc98a}
+.node.next{border-color:var(--orange);border-style:dashed}
+.node.goal{width:58px;height:58px;font-size:30px;border-color:var(--orange);background:#fffaf0}
+.node .lbl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:3px;white-space:nowrap;font-size:10px;font-weight:700;background:rgba(255,255,255,.88);padding:0 6px;border-radius:99px;pointer-events:none}
+.chick{position:absolute;z-index:3;transform:translate(-50%,-92%);pointer-events:none}
+.chick span{display:block;font-size:32px;filter:drop-shadow(0 3px 2px rgba(0,0,0,.18))}
+.chick.walk span{animation:hop .32s ease-in-out infinite}
+@keyframes hop{50%{transform:translateY(-9px)}}
+.caption{margin:12px 0 0;text-align:center;font-weight:700;font-size:.92rem}
+.btn{border:none;border-radius:999px;padding:11px 20px;font-weight:700;cursor:pointer;background:#eef4ff;color:var(--blue-d);transition:transform .1s,filter .15s}
+.btn:hover{filter:brightness(.97)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:#f2f6ef;color:var(--ink)}
+.btn.start{background:var(--blue);color:#fff;font-size:1.05rem;padding:14px 28px;box-shadow:0 4px 0 var(--blue-d)}
+.btn.small{padding:8px 14px;font-size:.85rem}
+.btn.danger{background:#e5484d;color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+#lapBtn{display:block;margin:10px auto 0}
+.timercard{text-align:center}
+.durs{display:flex;gap:10px;justify-content:center;margin:6px 0 14px}
+.dur{width:92px;height:92px;border-radius:20px;border:2px solid transparent;background:#f3f7ee;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:28px;font-weight:800;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.06);color:#3a5130}
+.dur span{font-size:12px;font-weight:600}
+.dur[aria-pressed="true"]{background:var(--green2);color:#fff;border-color:#4f8d36}
+.talk{display:flex;gap:8px;align-items:center;justify-content:center;margin:6px auto 16px;max-width:340px}
+.talk .face{font-size:26px}
+.talk span:last-child{background:#fffbea;border:2px solid #ffe9a6;border-radius:14px;padding:6px 12px;font-size:.9rem;font-weight:600;text-align:left}
+.ring{position:relative;width:210px;height:210px;margin:4px auto 6px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:14}
+.ring .bg{stroke:#cfe2fb}
+.ring .fg{stroke:var(--blue);stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+.ringtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ringtxt b{font-size:2.6rem;color:#2b4a6f;font-variant-numeric:tabular-nums}
+.ringtxt small{color:var(--sub);font-weight:600}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.stars{font-size:28px;letter-spacing:4px}
+.sum{margin:4px 0 0;font-size:.88rem;color:var(--sub)}
+.hist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.hist li{background:#f5faf1;border-radius:12px;padding:8px 12px;font-size:.85rem;display:flex;justify-content:space-between;gap:8px}
+.hist li.empty{justify-content:center;color:var(--sub)}
+.hist small{color:var(--sub)}
+.setcard label{display:block;font-size:.85rem;font-weight:700;margin-bottom:10px}
+.setcard input[type=text],.setcard input[type=date]{display:block;width:100%;margin-top:4px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:#fbfdf9}
+.toggle{display:flex!important;align-items:center;gap:8px;background:#eef6ff;border-radius:12px;padding:10px 12px}
+.toggle input{width:20px;height:20px;accent-color:var(--blue)}
+.ask{margin-top:8px;background:#fff1f1;border-radius:12px;padding:10px;font-size:.85rem}
+.ask .row{justify-content:flex-start;margin-top:6px}
+footer{text-align:center;font-size:.8rem;color:var(--sub);padding:10px 16px 28px}
+.overlay{position:fixed;inset:0;background:rgba(30,60,45,.45);display:grid;place-items:center;padding:20px;z-index:20}
+.overlay[hidden]{display:none}
+.mcard{background:#fff;border-radius:24px;padding:24px 20px;max-width:360px;width:100%;text-align:center;animation:pop .35s cubic-bezier(.2,1.4,.5,1)}
+@keyframes pop{from{transform:scale(.8);opacity:0}}
+.memo{font-size:56px;line-height:1.1}
+.mcard h2{margin:10px 0 6px;font-size:1.2rem}
+.mcard p{margin:0 0 18px;font-size:.95rem}
+.toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,40px);opacity:0;background:#24543a;color:#fff;padding:10px 16px;border-radius:14px;font-size:.88rem;max-width:90vw;transition:.3s;z-index:30;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (min-width:900px){
+.layout{grid-template-columns:1.05fr 1fr;align-items:start}
+.mapcard{grid-row:span 3}
+.map{max-height:72vh;margin:0 auto}
+}
+@media (prefers-reduced-motion:reduce){.cloud,.chick.walk span,.mcard{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true">🐥</span><div><h1>ごうかくクエスト</h1><p>集中した分だけ、合格の門へ。</p></div></div>
+  <div class="chips"><span class="chip hot" id="chipDays" data-demo="exam-countdown">📅 試験まで あと --日</span><span class="chip" id="chipStar" data-demo="today-chip">⭐ 今日 0回</span></div>
+</header>
+
+<main class="layout">
+  <section class="card mapcard" data-demo="map-card">
+    <div class="maphead">
+      <div><div class="goalname" id="goalName">🏰 志望校の合格の門</div><div class="prog">ぼうけん <b id="minNow">0</b> / 500 分</div></div>
+      <div class="laps" id="laps"></div>
+    </div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="500" id="barWrap"><i id="bar"></i></div>
+    <div class="map" id="map" data-demo="map">
+      <span class="cloud c1" aria-hidden="true">☁️</span><span class="cloud c2" aria-hidden="true">☁️</span>
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <polyline id="road" fill="none" stroke="#fff6d8" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+        <polyline id="road2" fill="none" stroke="#e2c98f" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div class="chick" id="chick"><span>🐥</span></div>
+    </div>
+    <p class="caption" id="caption" data-demo="map-caption" aria-live="polite"></p>
+    <button class="btn ghost" id="lapBtn" data-demo="next-lap" hidden>🔁 2周目のぼうけんへ</button>
+  </section>
+
+  <section class="card timercard" data-demo="timer">
+    <div id="viewSelect">
+      <h2>今日はどれだけやる？</h2>
+      <div class="durs" role="group" aria-label="集中する時間">
+        <button class="dur" data-min="10" data-demo="dur-10" aria-pressed="false">10<span>ちょっとだけ</span></button>
+        <button class="dur" data-min="25" data-demo="dur-25" aria-pressed="true">25<span>いつもの</span></button>
+        <button class="dur" data-min="50" data-demo="dur-50" aria-pressed="false">50<span>本気モード</span></button>
+      </div>
+      <p class="talk"><span class="face" aria-hidden="true">🐥</span><span id="selTalk"></span></p>
+      <button class="btn start" id="startBtn" data-demo="start-timer">▶ 冒険スタート</button>
+    </div>
+    <div id="viewRun" hidden>
+      <div class="ring" data-demo="timer-ring">
+        <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="bg" cx="100" cy="100" r="86"/><circle class="fg" id="ringFg" cx="100" cy="100" r="86"/></svg>
+        <div class="ringtxt"><b id="timeTxt" aria-live="off">25:00</b><small id="courseTxt">25分コース</small></div>
+      </div>
+      <p class="talk"><span class="face" aria-hidden="true">🐥</span><span id="runTalk"></span></p>
+      <div class="row">
+        <button class="btn" id="pauseBtn" data-demo="pause-timer">⏸ 一時停止</button>
+        <button class="btn ghost" id="stopBtn" data-demo="finish-early">🏁 ここでおわる</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card stampcard" data-demo="stamps">
+    <h2>今日のスタンプ <span id="stampCount">0/5</span></h2>
+    <div class="stars" id="stars" aria-live="polite"></div>
+    <p class="sum" id="sum"></p>
+    <h3>ぼうけんの記録</h3>
+    <ul class="hist" id="hist" data-demo="history"></ul>
+  </section>
+
+  <section class="card setcard">
+    <h2>⚙️ せってい</h2>
+    <label>志望校の名前<input type="text" id="school" data-demo="input-school" maxlength="20" placeholder="例：さくら大学"></label>
+    <label>試験日<input type="date" id="exam" data-demo="input-exam-date"></label>
+    <label class="toggle"><input type="checkbox" id="demo" data-demo="demo-speed"> ⏩ デモ早送り（1秒＝1分）</label>
+    <button class="btn small ghost" id="resetBtn" data-demo="reset">さいしょからやりなおす</button>
+    <div class="ask" id="resetAsk" hidden>
+      進み具合と記録をすべて消します。いいですか？
+      <div class="row"><button class="btn small danger" id="resetYes" data-demo="reset-confirm">消してやりなおす</button><button class="btn small ghost" id="resetNo" data-demo="reset-cancel">やめておく</button></div>
+    </div>
+  </section>
+</main>
+
+<footer>ごうかくクエスト ・ Made at AIでアイデアをカタチに！</footer>
+
+<div class="overlay" id="modal" hidden>
+  <div class="mcard" role="dialog" aria-modal="true" aria-labelledby="mTitle" data-demo="event-card">
+    <div class="memo" id="mEmoji"></div>
+    <h2 id="mTitle"></h2>
+    <p id="mMsg"></p>
+    <button class="btn start" id="mBtn" data-demo="event-next">つぎへ</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+var GOAL=500;
+var STOPS=[
+{m:0,e:'🌉',n:'はじまりの橋',x:18,y:91,msg:''},
+{m:40,e:'🌼',n:'お花畑',x:52,y:86,msg:'最初の一歩がいちばんえらい。きみはもう歩き出してるよ！'},
+{m:90,e:'🍄',n:'キノコの森',x:81,y:74,msg:'森のキノコたちが「その調子！」と手をふってる。積み重ねは裏切らないよ。'},
+{m:140,e:'🌳',n:'大きな木',x:52,y:63,msg:'大きな木の下で深呼吸。ここまでの努力が、根っこみたいにきみを支えてる。'},
+{m:180,e:'⛰️',n:'山の峠',x:19,y:54,msg:'峠をこえた！しんどいと感じる時ほど、実力はぐんと伸びてるんだって。'},
+{m:240,e:'🍡',n:'茶屋',x:37,y:41,msg:'茶屋でひと休み。水を飲んで、肩をまわそう。休むのも作戦のうち！'},
+{m:300,e:'🌊',n:'青い湖',x:74,y:44,msg:'湖に映るきみ、ちょっとたくましくなったね。折り返しをこえたよ！'},
+{m:360,e:'🏘️',n:'ふもとの村',x:82,y:28,msg:'村のみんなが「がんばれー！」って応援してる。その声、きこえる？'},
+{m:430,e:'🌙',n:'星見の丘',x:24,y:25,msg:'丘の上からお城が見えてきた！ゴールはもうすぐそこだよ。'},
+{m:500,e:'🏰',n:'合格の門',x:55,y:10,msg:'500分の集中、本当によくがんばったね。きみなら、きっと大丈夫！'}
+];
+var SEL_TALK={10:'10分でも、えらいよ。まずは始めてみよう！',25:'いつものペースでいこう！ぴよっ',50:'本気モード！水分補給も忘れずにね'};
+var KEY='gokaku-quest-v1';
+function todayKey(d){d=d||new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
+function defExam(){var d=new Date();d.setDate(d.getDate()+100);return todayKey(d)}
+function def(){return {minutes:0,laps:0,school:'',exam:defExam(),stamps:{},history:[],demo:false,dur:25}}
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s==='object'){var d=def();for(var k in d){if(s[k]!==undefined)d[k]=s[k]}return d}}catch(e){}return def()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+var S=load();
+var $=function(id){return document.getElementById(id)};
+var dispMin=S.minutes;
+
+/* map build */
+var map=$('map'),chick=$('chick');
+var pts=STOPS.map(function(s){return s.x+','+s.y}).join(' ');
+$('road').setAttribute('points',pts);$('road2').setAttribute('points',pts);
+var nodeEls=STOPS.map(function(s,i){
+  var b=document.createElement('button');
+  b.className='node'+(i===STOPS.length-1?' goal':'');
+  b.style.left=s.x+'%';b.style.top=s.y+'%';
+  b.setAttribute('data-demo','stop-'+i);
+  b.setAttribute('aria-label',s.n+'（'+s.m+'分地点）');
+  b.innerHTML=s.e+'<span class="lbl">'+s.n+'</span>';
+  b.addEventListener('click',function(){
+    var st=S.minutes>=s.m?'到着ずみ！':'あと'+(s.m-S.minutes)+'分';
+    toast(s.e+' '+s.n+'（'+s.m+'分地点）… '+st);
+  });
+  map.insertBefore(b,chick);return b;
+});
+
+function pos(m){
+  for(var i=0;i<STOPS.length-1;i++){var a=STOPS[i],b=STOPS[i+1];
+    if(m<=b.m){var t=(m-a.m)/(b.m-a.m);return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t}}}
+  var l=STOPS[STOPS.length-1];return {x:l.x,y:l.y};
+}
+function schoolName(){return S.school.trim()||'志望校'}
+function renderMap(){
+  var m=Math.round(dispMin);
+  var p=pos(dispMin);chick.style.left=p.x+'%';chick.style.top=p.y+'%';
+  $('minNow').textContent=m;
+  $('bar').style.width=(m/GOAL*100)+'%';
+  $('barWrap').setAttribute('aria-valuenow',m);
+  $('goalName').textContent='🏰 '+schoolName()+'の合格の門';
+  var nextIdx=-1;
+  STOPS.forEach(function(s,i){var done=m>=s.m;nodeEls[i].classList.toggle('done',done);if(!done&&nextIdx<0)nextIdx=i});
+  nodeEls.forEach(function(n,i){n.classList.toggle('next',i===nextIdx)});
+  var cap;
+  if(m>=GOAL){cap='🎉 '+schoolName()+'の合格の門に到着！本当によくがんばったね';}
+  else{var cur=STOPS[nextIdx-1],nx=STOPS[nextIdx];
+    cap='🐥 いまここ：'+cur.e+cur.n+(m>cur.m?'の先':'')+' ／ 次の '+nx.e+nx.n+' まで あと'+(nx.m-m)+'分';}
+  $('caption').textContent=cap;
+  $('lapBtn').hidden=!(S.minutes>=GOAL&&dispMin>=GOAL);
+  $('laps').textContent=S.laps>0?'🏅 合格の門 ×'+S.laps:'';
+}
+
+/* header + stamps */
+function renderInfo(){
+  var cnt=S.stamps[todayKey()]||0;
+  $('chipStar').textContent='⭐ 今日 '+cnt+'回';
+  var stars='';for(var i=0;i<5;i++)stars+=i<cnt?'⭐':'☆';
+  if(cnt>5)stars+=' +'+(cnt-5);
+  $('stars').textContent=stars;
+  $('stampCount').textContent=cnt+'/5';
+  var total=0;S.history.forEach(function(h){total+=h.min});
+  var msg=cnt>=5?'今日の目標たっせい！すごいよ🎊':cnt===0?'1回集中するとスタンプが1つたまるよ':'あと'+(5-cnt)+'回で今日の目標たっせい！';
+  $('sum').textContent=msg+(S.history.length?'（これまで '+S.history.length+'回・合計'+total+'分）':'');
+  var ul=$('hist');ul.innerHTML='';
+  if(!S.history.length){var li=document.createElement('li');li.className='empty';li.textContent='まだ記録はありません。10分からでもどうぞ！';ul.appendChild(li);}
+  S.history.slice(0,6).forEach(function(h){
+    var d=new Date(h.ts),li=document.createElement('li');
+    var l=document.createElement('span');l.textContent='⏱ '+h.min+'分 集中 → '+h.at;
+    var r=document.createElement('small');r.textContent=(d.getMonth()+1)+'/'+d.getDate()+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+    li.appendChild(l);li.appendChild(r);ul.appendChild(li);
+  });
+  var chip=$('chipDays');
+  if(S.exam){
+    var t=new Date();t.setHours(0,0,0,0);var e=new Date(S.exam+'T00:00:00');
+    var days=Math.round((e-t)/864e5);
+    chip.hidden=isNaN(days);
+    chip.textContent=days>0?'📅 試験まで あと '+days+'日':days===0?'📅 今日が試験日！ファイト！':'🌸 試験おつかれさま！';
+  }else chip.hidden=true;
+}
+
+/* select view */
+var durBtns=[].slice.call(document.querySelectorAll('.dur'));
+function renderSel(){
+  durBtns.forEach(function(b){b.setAttribute('aria-pressed',String(+b.dataset.min===S.dur))});
+  $('selTalk').textContent=SEL_TALK[S.dur];
+  $('startBtn').textContent='▶ '+S.dur+'分の冒険スタート';
+}
+durBtns.forEach(function(b){b.addEventListener('click',function(){S.dur=+b.dataset.min;save();renderSel()})});
+
+/* timer */
+var C=2*Math.PI*86,ring=$('ringFg');ring.style.strokeDasharray=C;
+var T={run:false,paused:false,total:0,endAt:0,remain:0,speed:1,iv:null};
+function fmt(sec){sec=Math.max(0,Math.ceil(sec));return ('0'+Math.floor(sec/60)).slice(-2)+':'+('0'+sec%60).slice(-2)}
+function runTalk(p){
+  if(p<.08)return 'いっしょにがんばろう！ぴよっ';
+  if(p<.45)return '集中できてるね、その調子！';
+  if(p<.6)return 'いい調子！あと半分だよ';
+  if(p<.88)return 'ここが踏んばりどころ！';
+  return 'ラストスパート！ゴールは目の前！';
+}
+function tick(){
+  var rem=T.paused?T.remain:T.endAt-Date.now();
+  if(rem<=0){finish(T.total/60000*T.speed,false);return}
+  var p=1-rem/T.total;
+  var vs=rem*T.speed/1000;
+  $('timeTxt').textContent=fmt(vs);
+  ring.style.strokeDashoffset=C*(1-p);
+  $('runTalk').textContent=T.paused?'ひと休み中。準備ができたら再開しよう':runTalk(p);
+  document.title=(T.paused?'⏸ ':'')+fmt(vs)+' - ごうかくクエスト';
+}
+function setView(run){$('viewSelect').hidden=run;$('viewRun').hidden=!run;$('demo').disabled=run}
+$('startBtn').addEventListener('click',function(){
+  T.speed=S.demo?60:1;T.total=S.dur*60000/T.speed;T.endAt=Date.now()+T.total;T.run=true;T.paused=false;
+  $('courseTxt').textContent=S.dur+'分コース'+(S.demo?'（早送り）':'');
+  $('pauseBtn').textContent='⏸ 一時停止';
+  setView(true);tick();clearInterval(T.iv);T.iv=setInterval(tick,250);
+  $('pauseBtn').focus();
+});
+$('pauseBtn').addEventListener('click',function(){
+  if(!T.paused){T.remain=T.endAt-Date.now();T.paused=true;this.textContent='▶ 再開';}
+  else{T.endAt=Date.now()+T.remain;T.paused=false;this.textContent='⏸ 一時停止';}
+  tick();
+});
+$('stopBtn').addEventListener('click',function(){
+  var rem=T.paused?T.remain:T.endAt-Date.now();
+  var mins=Math.floor((T.total-rem)*T.speed/60000);
+  if(mins<1){stopTimer();toast('1分未満だったので今回はノーカウント。また気軽にどうぞ！');return}
+  finish(mins,true);
+});
+function stopTimer(){clearInterval(T.iv);T.run=false;T.paused=false;setView(false);document.title='ごうかくクエスト';ring.style.strokeDashoffset=C;$('startBtn').focus()}
+
+function finish(mins,early){
+  mins=Math.round(mins);stopTimer();
+  var from=S.minutes,to=Math.min(GOAL,from+mins);
+  S.minutes=to;
+  var k=todayKey();S.stamps[k]=(S.stamps[k]||0)+1;
+  var reached=STOPS.filter(function(s){return s.m<=to}).pop();
+  S.history.unshift({ts:Date.now(),min:mins,at:to>=GOAL?'🏰合格の門':reached.e+reached.n+(to>reached.m?'の先':'')});
+  S.history=S.history.slice(0,30);
+  save();renderInfo();
+  try{if(navigator.vibrate)navigator.vibrate([120,60,120])}catch(e){}
+  showModals([{e:'🎉',t:mins+'分 集中できた！',m:(early?'途中まででも、やった分はちゃんと進むよ。':'最後までやりきったね！')+' ⭐スタンプをゲット。ひよこが'+(to-from)+'分ぶん進むよ！',b:'すすむ！'}],function(){
+    move(from,to,function(){
+      var ev=STOPS.filter(function(s){return s.m>from&&s.m<=to&&s.m>0}).map(function(s){
+        return s.m===GOAL?{e:'🏰',t:schoolName()+'の合格の門に到着！',m:s.msg,b:'やったー！'}:{e:s.e,t:s.n+'に到着！',m:s.msg,b:'つぎへ'}});
+      if(ev.length)showModals(ev,function(){renderMap()});
+    });
+  });
+}
+
+/* chick movement */
+function move(from,to,cb){
+  if(to<=from){dispMin=to;renderMap();cb();return}
+  var dur=Math.min(2600,700+(to-from)*25),st=performance.now();
+  chick.classList.add('walk');
+  (function f(now){
+    var t=Math.min(1,(now-st)/dur),e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+    dispMin=from+(to-from)*e;renderMap();
+    if(t<1)requestAnimationFrame(f);else{chick.classList.remove('walk');dispMin=to;renderMap();cb()}
+  })(st);
+}
+
+/* modal */
+var queue=[],qDone=null,lastFocus=null;
+function showModals(list,done){queue=list.slice();qDone=done;lastFocus=document.activeElement;next()}
+function next(){
+  var it=queue.shift();
+  if(!it){$('modal').hidden=true;var d=qDone;qDone=null;if(lastFocus&&lastFocus.focus)lastFocus.focus();if(d)d();return}
+  $('mEmoji').textContent=it.e;$('mTitle').textContent=it.t;$('mMsg').textContent=it.m;$('mBtn').textContent=it.b||'つぎへ';
+  $('modal').hidden=false;
+  var c=$('modal').querySelector('.mcard');c.style.animation='none';void c.offsetWidth;c.style.animation='';
+  $('mBtn').focus();
+}
+$('mBtn').addEventListener('click',next);
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('modal').hidden)next()});
+
+/* toast */
+var tt;
+function toast(msg){var t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show')},2600)}
+
+/* lap */
+$('lapBtn').addEventListener('click',function(){
+  S.laps++;S.minutes=0;dispMin=0;save();renderMap();
+  toast('🏅 '+S.laps+'周目クリア！もう一度はじまりの橋から出発だよ');
+});
+
+/* settings */
+$('school').value=S.school;$('exam').value=S.exam||'';$('demo').checked=!!S.demo;
+$('school').addEventListener('input',function(){S.school=this.value;save();renderMap()});
+$('exam').addEventListener('change',function(){S.exam=this.value;save();renderInfo();toast(this.value?'試験日をセットしたよ。いっしょにがんばろう！':'試験日をクリアしました')});
+$('demo').addEventListener('change',function(){S.demo=this.checked;save();toast(this.checked?'⏩ デモ早送りON：1秒で1分すすみます':'早送りOFF：ふつうのタイマーに戻りました')});
+$('resetBtn').addEventListener('click',function(){$('resetAsk').hidden=false;$('resetNo').focus()});
+$('resetNo').addEventListener('click',function(){$('resetAsk').hidden=true;$('resetBtn').focus()});
+$('resetYes').addEventListener('click',function(){
+  var keep={school:S.school,exam:S.exam,demo:S.demo};
+  if(T.run)stopTimer();
+  S=def();S.school=keep.school;S.exam=keep.exam;S.demo=keep.demo;dispMin=0;save();
+  $('resetAsk').hidden=true;renderAll();toast('🌉 はじまりの橋にもどりました。新しい冒険のはじまり！');
+});
+
+function renderAll(){renderMap();renderInfo();renderSel()}
+renderAll();
+})();
+</script>
+</body>
+</html>
